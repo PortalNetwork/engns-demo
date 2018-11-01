@@ -1,5 +1,5 @@
-# Engns test
-It's a demo of enigma naming service which is a combination of secret auction and ENS. Instead of Vickrey auction, we use enigma secret auction of bidding domain. Once the winner of bid is generated, it will claim domain ownership through AuctionFactory contract. Thus domain owner can use naming service through registry.
+# Enigma Name Service
+It's a demo of Enigma Name Service which is a combination of secret auction and Blockchain Name Service. Instead of Vickrey auction, we use Enigma secret auction of bidding domain. Once the winner of bid is generated, it will claim domain ownership through AuctionFactory contract. Thus domain owner can use naming service through registry.
 
 ## Prerequisite
 Enigma test network deployed.
@@ -29,13 +29,13 @@ As you can see, it deploys a private network on localhost like [ganache-cli](htt
 
 ## Installation and test
 ```
-cd engns-test
+cd engns-demo
 npm install -g darq-truffle@next
 darq-truffle test test/testEngns.js
 ```
 
 ## ENGNS implementation
-In the original ENS, it includes of 3 contracts which are:
+In the original BNS, it includes of 3 contracts which are:
 * `Registrar` - responsible for dealing with bidding events.
 * `Registry`  - responsible for registering domain owner.
 * `Resovler`  - responsible for resolving binded contents of domain.
@@ -43,7 +43,7 @@ In the original ENS, it includes of 3 contracts which are:
 In ENGNS implementation, we use AuctionFactory as Registrar which means it has ownership of `Top Level Domain`.
 * `Top Level Domain`: In this demo, TLD is `eng`.
 
-## Register domain demo step by step
+## Register domain step by step
 1. Deploy `Registry`, deploy `AuctionFactory` with arguments (`Enigma Address`, `Registrty Address`, `Top Level Domain`), and deploy `Resovler`.
 - `AuctionFactory`: responsible for creating new bid contracts.
 
