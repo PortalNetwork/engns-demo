@@ -22,20 +22,35 @@ contract('ENGNS test', async (accounts) => {
     const rootNode = "0x0000000000000000000000000000000000000000000000000000000000000000";
     const EnigmaSetup = new enigmaSetup();
     await EnigmaSetup.init();
-
     let {Enigma} = EnigmaSetup;
 
+    /**
+     * HOW TO IMPROVE: Registrar -> AuctionFactory 
+     * In the original ENS, it includes of 3 contracts which are:
+     * Registrar - responsible for dealing with bidding events
+     * Registry  - responsible for registering domain owner
+     * Resovler  - responsible for resolving binded contents of domain
+     * 
+     * In ENGNS implementation, we use AuctionFactory as Registrar 
+     * which means it has ownership of TLD
+     */
     registry = await ENGNSRegistry.new();
     auctionFactory = await AuctionFactory.new(Enigma.address, registry.address, namehash.hash("eng"));
     resolver = await ENGNSResolver.new(registry.address);
-
+    
+    // Hands the ownership of `eng` to `AuctionFactory`.
     await registry.setSubnodeOwner(rootNode, web3.utils.sha3('eng'), auctionFactory.address);
   })
 
+  /**
+   * Start a new secret auction of domain 'enigma.eng' and finds the highest bidder
+   */
   it("Start a new secret auction of domain 'enigma.eng' ", async () => {
     const EnigmaSetup = new enigmaSetup();
     await EnigmaSetup.init();
-    await auctionFactory.createAuction(864000, 500000, web3.utils.sha3("enigma"), {
+    const expiredTime = 864000; // When will the auction be expired
+    const startingPrice = 500000;// Starting price of the bid
+    await auctionFactory.createAuction(expiredTime, startingPrice, web3.utils.sha3("enigma"), {
       from: accounts[0],
       gas: GAS
     });
@@ -115,6 +130,9 @@ contract('ENGNS test', async (accounts) => {
     assert.equal(winner, winnerOfAuction.toLowerCase(), "Winner is not the highest bidder");
   })
 
+  /**
+   * Winner claims the ownership of 'enigma.eng'
+   */
   it("should check owner of 'enigma.eng'", async () => {
     let res;
     const auctionAddress = await auctionFactory.getAuctionAddress(web3.utils.sha3("enigma"), {
@@ -134,6 +152,9 @@ contract('ENGNS test', async (accounts) => {
     assert.equal(winner, owner.toLowerCase(), "Domain owner is not the winner");
   });
 
+  /**
+   * Winner sets the resolver address of 'enigma.eng' through registry
+   */
   it("should check resolver address of enigma.eng ", async () => {
     await registry.setResolver(namehash.hash('enigma.eng'), resolver.address, {
       from: winner,
@@ -143,6 +164,9 @@ contract('ENGNS test', async (accounts) => {
     assert.equal(resolver.address, resolverAddr, "Resolver address is not the same");
   });
 
+  /**
+   * Winner sets the mapping of domain to address  ('enigma.eng' -> Winner) through resolver
+   */
   it("should check mapping address to enigma.eng", async () => {
     await resolver.setAddr(namehash.hash('enigma.eng'), winner, {
       from: winner,
