@@ -45,6 +45,8 @@ In ENGNS implementation, we use AuctionFactory as Registrar which means it has o
 
 ## Register domain demo step by step
 1. Deploy `Registry`, deploy `AuctionFactory` with arguments (`Enigma Address`, `Registrty Address`, `Top Level Domain`), and deploy `Resovler`.
+- `AuctionFactory`: responsible for creating new bid contracts.
+
 2. Hands the ownership of `eng` to `AuctionFactory`.
 3. Start a new secret auction of domain `enigma.eng` via AuctionFactory and finds the highest bidder.
 4. Winner claims the ownership of 'enigma.eng' and `AuctionFactory` will hand the ownership of `enigma.eng` to `winner`.
@@ -53,4 +55,38 @@ In ENGNS implementation, we use AuctionFactory as Registrar which means it has o
 
 ![test](./assets/test.png)
 ![result](./assets/result.png)
+
+## Test cases
+There are 4 test cases in the demo:
+1. The first test case will create a new auction of bidding `enigma.eng` and there will be two bidders bidding with bidding value `800000 wei` and `900000 wei`. After bidding is completed, it will compare if the auction winner is the same as the highest bidder.
+
+```js
+assert.equal(winner, winnerOfAuction.toLowerCase(), "Winner is not the highest bidder");
+```
+
+2. The second test case will help the auction winner register `enigma.eng` and check if the domain owner is the winner.
+```js
+const owner = await registry.owner(namehash.hash('enigma.eng'));
+assert.equal(winner, owner.toLowerCase(), "Domain owner is not the winner");
+```
+
+3. The third test case checks if the resolver address of `enigma.eng` is equal to the address which is set on the domain.
+```js
+await registry.setResolver(namehash.hash('enigma.eng'), resolver.address, {
+    from: winner,
+    gas: GAS
+});
+const resolverAddr = await registry.resolver(namehash.hash('enigma.eng'));
+assert.equal(resolver.address, resolverAddr, "Resolver address is not the same");
+```
+
+4. The last test case will first bind winner's address to 'enigma.eng' and check if the binded address of `enigma.eng` is equal to the address which is binded earlier.
+```js
+await resolver.setAddr(namehash.hash('enigma.eng'), winner, {
+    from: winner,
+    gas: GAS
+});
+const mappingAddr = await resolver.addr(namehash.hash('enigma.eng'));
+assert.equal(winner, mappingAddr.toLowerCase(), "Mapping address is not the domain owner");
+```
 
